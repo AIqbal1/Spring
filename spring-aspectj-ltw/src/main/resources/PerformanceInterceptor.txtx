@@ -1,0 +1,80 @@
+package com.ingg.virgo.kernel.logging;
+
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class PerformanceInterceptor implements MethodInterceptor
+{
+
+	private final Logger LOGGER = LoggerFactory.getLogger( "MethodProfiler" );
+
+	private static ConcurrentHashMap<String, MethodStats> methodStats = new ConcurrentHashMap<String, MethodStats>();
+
+	private MethodProfilerParameters parameters;
+
+	public void setProfiler( MethodProfilerParameters profiler ) {
+		this.parameters = profiler;
+	}
+
+	public Object invoke( MethodInvocation method ) throws Throwable {
+		if(parameters.isProfileMethod()) {
+			long start = System.currentTimeMillis();
+			try {
+				return method.proceed();
+			} finally {
+				updateStats( method.getMethod().getName(), (System.currentTimeMillis() - start) );
+			}
+		}	
+		else {
+			return method.proceed();
+		}
+	}
+
+	private void updateStats( String methodName, long elapsedTime ) {
+		MethodStats stats = methodStats.get( methodName );
+
+		if( stats == null ) {
+			stats = new MethodStats( methodName );
+			methodStats.put( methodName, stats );
+		}
+
+		stats.count++;
+		stats.totalTime += elapsedTime;
+		if( elapsedTime > stats.maxTime ) {
+			stats.maxTime = elapsedTime;
+		}
+
+		if( elapsedTime > this.parameters.getMethodWarningThreshold() ) {
+			LOGGER.warn( "method warning: " + methodName + "(), cnt = " + stats.count + ", lastTime = " + elapsedTime
+					+ ", maxTime = " + stats.maxTime );
+		}
+
+		long statLogFrequency = this.parameters.getStatLogFrequency();
+		if( stats.count % statLogFrequency == 0 ) {
+			long avgTime = stats.totalTime / stats.count;
+			long runningAvg = (stats.totalTime - stats.lastTotalTime) / statLogFrequency;
+			LOGGER.debug( "method: " + methodName + "(), cnt = " + stats.count + ", lastTime = " + elapsedTime + ", avgTime = "
+					+ avgTime + ", runningAvg = " + runningAvg + ", maxTime = " + stats.maxTime );
+
+			// reset the last total time
+			stats.lastTotalTime = stats.totalTime;
+		}
+	}
+
+	class MethodStats
+	{
+		public String methodName;
+		public long count;
+		public long totalTime;
+		public long lastTotalTime;
+		public long maxTime;
+
+		public MethodStats( String methodName ) {
+			this.methodName = methodName;
+		}
+	}
+}

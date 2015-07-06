@@ -1,0 +1,16 @@
+<!DOCTYPE aspectj PUBLIC "-//AspectJ//DTD//EN" "http://www.eclipse.org/aspectj/dtd/aspectj.dtd">
+<aspectj>
+
+    <weaver options="-XnoInline -Xreweavable -verbose -debug -showWeaveInfo">
+        <!-- only weave classes in our application-specific packages -->
+        <exclude within="com.ingg.virgo.kernel.logging.VirgoLoggingAspect"/>
+        <include within="com.ingg.virgo.kernel.logging.VirgoTraceAspect"/>        
+        <include within="com.ingg.virgo.kernel.adapter.authentication.AuthenticationServiceImpl"/>             
+    </weaver>
+
+    <aspects>
+        <!-- weave in just this aspect -->
+        <aspect name="com.ingg.virgo.kernel.logging.VirgoTraceAspect"/>
+    </aspects>
+
+</aspectj>

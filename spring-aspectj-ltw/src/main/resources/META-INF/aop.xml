@@ -1,0 +1,15 @@
+<!DOCTYPE aspectj PUBLIC "-//AspectJ//DTD//EN" "http://www.eclipse.org/aspectj/dtd/aspectj.dtd">
+<aspectj>
+
+    <weaver>
+        <!-- only weave classes in our application-specific packages -->
+        <!-- MUST include the aspect in here too else it will not work!!!! -->
+        <include within="com.spring.aspectj.*"/>
+    </weaver>
+
+    <aspects>
+        <!-- weave in just this aspect -->
+        <aspect name="com.spring.aspectj.VirgoTraceAspect"/>
+    </aspects>
+
+</aspectj>

@@ -1,0 +1,3 @@
+<Context path="/spring-aspectj" docBase="spring-aspectj" debug="1" swallowOutput="true">
+	<Loader loaderClass="org.springframework.instrument.classloading.tomcat.TomcatInstrumentableClassLoader"/>		
+</Context>
